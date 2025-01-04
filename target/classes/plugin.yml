@@ -1,0 +1,60 @@
+name: SellWand
+version: '1.0-SNAPSHOT'
+main: com.f1shy312.sellWand.main
+api-version: '1.21'
+depend: [PlotSquared, EconomyShopGUI, Vault]
+commands:
+  sellwand:
+    description: Main command for the SellWand plugin
+    usage: /<command> [give|reload|info]
+    permission: sellwand.command.use
+
+permissions:
+  sellwand.*:
+    description: Gives access to all SellWand permissions
+    default: op
+    children:
+      sellwand.admin: true
+      sellwand.command.*: true
+      sellwand.use.*: true
+  
+  sellwand.admin:
+    description: Allows access to all SellWand admin commands
+    default: op
+    children:
+      sellwand.command.*: true
+      
+  sellwand.command.*:
+    description: Gives access to all SellWand commands
+    default: op
+    children:
+      sellwand.command.use: true
+      sellwand.command.give: true
+      sellwand.command.reload: true
+      
+  sellwand.command.use:
+    description: Allows using the base sellwand command
+    default: true
+    
+  sellwand.command.give:
+    description: Allows giving SellWands to players
+    default: op
+    
+  sellwand.command.reload:
+    description: Allows reloading the plugin configuration
+    default: op
+    
+  sellwand.use.*:
+    description: Gives access to all SellWand usage permissions
+    default: op
+    children:
+      sellwand.use.wand: true
+      sellwand.use.bypass: true
+      
+  sellwand.use.wand:
+    description: Allows using SellWands
+    default: true
+    
+  sellwand.use.bypass:
+    description: Allows using SellWands anywhere, bypassing plot restrictions
+    default: op

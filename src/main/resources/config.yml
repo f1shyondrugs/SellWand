@@ -1,0 +1,46 @@
+# SellWand Configuration
+
+# Prefix for all plugin messages
+prefix:
+  enabled: true
+  format: "&8[&6SellWand&8] &7"
+
+# Messages
+messages:
+  no-permission: "&cYou don't have permission for this!"
+  not-on-plot: "&cThis chest is not on a plot!"
+  not-trusted: "&cYou don't have permission to sell items here!"
+  wand-received: "&aYou received a SellWand!"
+  config-reloaded: "&aConfiguration reloaded!"
+  sold-items: "&aSold for {amount}$!"
+  empty-chest: "&cNo sellable items in this chest!"
+  player-only: "&cThis command can only be used by players!"
+  unknown-command: "&cUnknown subcommand! Use: /sellwand [give|reload|info]"
+  error-selling: "&cError while selling items!"
+  wand-break: "&cYour SellWand has broken!"
+  price-too-high: "&cThe total sale price is too high! Maximum is ${max}."
+  single-chest-error: "&cSelling is only possible with double chests!"
+  wand-given: "&aGave a SellWand to {player} with {multiplier}x multiplier and {uses} uses!"
+
+# SellWand Settings
+wand:
+  material: BLAZE_ROD
+  name: "&6SellWand &8(&e{multiplier}x&8) &7[{uses} uses]"
+  lore:
+    - "&7Right-click on a chest to"
+    - "&7sell its contents!"
+    - "&8» &eSell Multiplier: &6{multiplier}x"
+    - "&8» &7Uses Remaining: &e{uses}"
+  default-uses: 100
+
+# Selling Settings
+selling:
+  price-multiplier: 1.0
+  success-sound: ENTITY_PLAYER_LEVELUP
+  success-particle: VILLAGER_HAPPY
+  # Maximum price per transaction (set to -1 for no limit)
+  max-price: 1000000.0
+  # Maximum price per item (set to -1 for no limit)
+  max-price-per-item: 100000.0
+  allow-single-chests: false
+  error-sound: ENTITY_VILLAGER_NO 

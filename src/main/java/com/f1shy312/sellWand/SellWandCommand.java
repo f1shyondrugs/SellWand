@@ -15,32 +15,30 @@ public class SellWandCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.player-only"));
+        if (!(sender instanceof Player) && (!args[0].equalsIgnoreCase("give") || args.length < 2)) {
+            sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.console-usage"));
             return true;
         }
 
-        Player player = (Player) sender;
-
-        if (!player.hasPermission("sellwand.command.use")) {
-            player.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
+        if (sender instanceof Player && !sender.hasPermission("sellwand.command.use")) {
+            sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
             return true;
         }
 
         if (args.length == 0) {
-            player.sendMessage(main.getPrefix() + "§cUsage: /sellwand [give|reload|info]");
+            sender.sendMessage(main.getPrefix() + "§cUsage: /sellwand [give|reload|info]");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "give":
-                if (!player.hasPermission("sellwand.command.give")) {
-                    player.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
+                if (sender instanceof Player && !sender.hasPermission("sellwand.command.give")) {
+                    sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
                     return true;
                 }
                 double multiplier = 1.0;
                 int uses = plugin.getConfig().getInt("wand.default-uses", 100);
-                Player target = player;
+                Player target = (sender instanceof Player) ? (Player) sender : null;
 
                 if (args.length >= 2) {
                     Player possibleTarget = Bukkit.getPlayer(args[1]);
@@ -50,11 +48,11 @@ public class SellWandCommand implements CommandExecutor {
                             try {
                                 multiplier = Double.parseDouble(args[2]);
                                 if (multiplier <= 0) {
-                                    player.sendMessage(main.getPrefix() + "§cMultiplier must be greater than 0!");
+                                    sender.sendMessage(main.getPrefix() + "§cMultiplier must be greater than 0!");
                                     return true;
                                 }
                             } catch (NumberFormatException e) {
-                                player.sendMessage(main.getPrefix() + "§cInvalid multiplier! Must be a number.");
+                                sender.sendMessage(main.getPrefix() + "§cInvalid multiplier! Must be a number.");
                                 return true;
                             }
                         }
@@ -62,45 +60,56 @@ public class SellWandCommand implements CommandExecutor {
                             try {
                                 uses = Integer.parseInt(args[3]);
                                 if (uses <= 0 && uses != -1) {
-                                    player.sendMessage(main.getPrefix() + "§cUses must be greater than 0 or -1 for infinite!");
+                                    sender.sendMessage(main.getPrefix() + "§cUses must be greater than 0 or -1 for infinite!");
                                     return true;
                                 }
                             } catch (NumberFormatException e) {
-                                player.sendMessage(main.getPrefix() + "§cInvalid uses! Must be a number.");
+                                sender.sendMessage(main.getPrefix() + "§cInvalid uses! Must be a number.");
                                 return true;
                             }
                         }
                     } else {
-                        try {
-                            multiplier = Double.parseDouble(args[1]);
-                            if (multiplier <= 0) {
-                                player.sendMessage(main.getPrefix() + "§cMultiplier must be greater than 0!");
-                                return true;
-                            }
-                        } catch (NumberFormatException e) {
-                            player.sendMessage(main.getPrefix() + "§cPlayer not found or invalid multiplier!");
-                            return true;
-                        }
-
-                        if (args.length >= 3) {
+                        if (sender instanceof Player) {
                             try {
-                                uses = Integer.parseInt(args[2]);
-                                if (uses <= 0 && uses != -1) {
-                                    player.sendMessage(main.getPrefix() + "§cUses must be greater than 0 or -1 for infinite!");
+                                multiplier = Double.parseDouble(args[1]);
+                                if (multiplier <= 0) {
+                                    sender.sendMessage(main.getPrefix() + "§cMultiplier must be greater than 0!");
                                     return true;
                                 }
                             } catch (NumberFormatException e) {
-                                player.sendMessage(main.getPrefix() + "§cInvalid uses! Must be a number.");
+                                sender.sendMessage(main.getPrefix() + "§cPlayer not found or invalid multiplier!");
                                 return true;
                             }
+
+                            if (args.length >= 3) {
+                                try {
+                                    uses = Integer.parseInt(args[2]);
+                                    if (uses <= 0 && uses != -1) {
+                                        sender.sendMessage(main.getPrefix() + "§cUses must be greater than 0 or -1 for infinite!");
+                                        return true;
+                                    }
+                                } catch (NumberFormatException e) {
+                                    sender.sendMessage(main.getPrefix() + "§cInvalid uses! Must be a number.");
+                                    return true;
+                                }
+                            }
+                            target = (Player) sender;
+                        } else {
+                            sender.sendMessage(main.getPrefix() + "§cPlayer not found!");
+                            return true;
                         }
                     }
                 }
 
+                if (target == null) {
+                    sender.sendMessage(main.getPrefix() + "§cMust specify a target player when using command from console!");
+                    return true;
+                }
+
                 target.getInventory().addItem(SellWand.createSellWand(multiplier, uses));
 
-                if (target != player) {
-                    player.sendMessage(main.getPrefix() + plugin.getMessage("messages.wand-given",
+                if (target != sender) {
+                    sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.wand-given",
                         "{player}", target.getName(),
                         "{multiplier}", String.format("%.1f", multiplier),
                         "{uses}", String.valueOf(uses)));
@@ -110,32 +119,32 @@ public class SellWandCommand implements CommandExecutor {
                     "{uses}", String.valueOf(uses)));
                 break;
             case "reload":
-                if (!player.hasPermission("sellwand.command.reload")) {
-                    player.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
+                if (!sender.hasPermission("sellwand.command.reload")) {
+                    sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.no-permission"));
                     return true;
                 }
                 plugin.reloadConfig();
                 plugin.loadTrustedUUIDs();
-                player.sendMessage(main.getPrefix() + plugin.getMessage("messages.config-reloaded"));
+                sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.config-reloaded"));
                 return true;
             case "info":
-                sendPluginInfo(player);
+                sendPluginInfo(sender);
                 break;
             default:
-                player.sendMessage(main.getPrefix() + plugin.getMessage("messages.unknown-command"));
+                sender.sendMessage(main.getPrefix() + plugin.getMessage("messages.unknown-command"));
                 break;
         }
 
         return true;
     }
 
-    private void sendPluginInfo(Player player) {
-        player.sendMessage("§8§l§m--------------------");
-        player.sendMessage(main.getPrefix() + "§fPlugin Information:");
-        player.sendMessage("§8» §7Version: §6" + plugin.getDescription().getVersion());
-        player.sendMessage("§8» §7Developer: §6Das_F1sHy312");
-        player.sendMessage("§8» §7GitHub: §6https://github.com/f1shyondrugs/sellwand");
-        player.sendMessage("§8» §7API Version: §6" + plugin.getDescription().getAPIVersion());
-        player.sendMessage("§8§l§m--------------------");
+    private void sendPluginInfo(CommandSender sender) {
+        sender.sendMessage("§8§l§m--------------------");
+        sender.sendMessage(main.getPrefix() + "§fPlugin Information:");
+        sender.sendMessage("§8» §7Version: §6" + plugin.getDescription().getVersion());
+        sender.sendMessage("§8» §7Developer: §6Das_F1sHy312");
+        sender.sendMessage("§8» §7GitHub: §6https://github.com/f1shyondrugs/sellwand");
+        sender.sendMessage("§8» §7API Version: §6" + plugin.getDescription().getAPIVersion());
+        sender.sendMessage("§8§l§m--------------------");
     }
 } 

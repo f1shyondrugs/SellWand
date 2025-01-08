@@ -46,7 +46,7 @@ public class SellWandListener implements Listener {
     }
 
     @EventHandler
-    public void onWandUse(PlayerInteractEvent event) {
+    public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
@@ -65,7 +65,8 @@ public class SellWandListener implements Listener {
             return;
         }
         Chest chest = (Chest) event.getClickedBlock().getState();
-        org.bukkit.inventory.Inventory inventory;
+        org.bukkit.inventory.Inventory chestInventory;
+        
         if (!plugin.getConfig().getBoolean("selling.allow-single-chests", false) && 
             !(chest.getInventory() instanceof org.bukkit.inventory.DoubleChestInventory)) {
             try {
@@ -78,10 +79,12 @@ public class SellWandListener implements Listener {
             player.sendMessage(main.getPrefix() + plugin.getMessage("messages.single-chest-error"));
             return;
         }
+
         if (chest.getInventory() instanceof org.bukkit.inventory.DoubleChestInventory) {
-            inventory = ((org.bukkit.inventory.DoubleChestInventory) chest.getInventory()).getHolder().getInventory();
+            org.bukkit.block.DoubleChest doubleChest = (org.bukkit.block.DoubleChest) chest.getInventory().getHolder();
+            chestInventory = doubleChest.getInventory();
         } else {
-            inventory = chest.getInventory();
+            chestInventory = chest.getInventory();
         }
         
         event.setCancelled(true);
@@ -108,7 +111,7 @@ public class SellWandListener implements Listener {
         }
         ItemStack wand = isMainHandWand ? mainHand : offHand;
         double wandMultiplier = SellWand.getMultiplier(wand);
-        sellChestContents(player, inventory, chest, wandMultiplier, wand);
+        sellChestContents(player, chestInventory, chest, wandMultiplier, wand);
     }
 
     private void sellChestContents(Player player, org.bukkit.inventory.Inventory inventory, Chest chest, double wandMultiplier, ItemStack wand) {
@@ -119,6 +122,8 @@ public class SellWandListener implements Listener {
         double totalMultiplier = configMultiplier * wandMultiplier;
         double maxPrice = plugin.getConfig().getDouble("selling.max-price", 1000000.0);
         double maxPricePerItem = plugin.getConfig().getDouble("selling.max-price-per-item", 100000.0);
+
+        // First pass: Calculate prices and check limits
         for (int i = 0; i < inventory.getSize(); i++) {
             ItemStack item = inventory.getItem(i);
             if (item != null && !item.getType().isAir()) {
@@ -143,14 +148,26 @@ public class SellWandListener implements Listener {
                 }
             }
         }
+
         if (sellableItems.isEmpty()) {
             player.sendMessage(main.getPrefix() + plugin.getMessage("messages.empty-chest"));
             return;
         }
+
+        // Only proceed with removing items if the money transaction was successful
         if (addMoney(player, totalPrice)) {
+            // Only remove items that were actually sold
             for (int slot : slotsToRemove) {
-                inventory.setItem(slot, null);
+                ItemStack item = inventory.getItem(slot);
+                if (item != null) {
+                    double itemPrice = getItemPrice(item);
+                    if (itemPrice > 0) {
+                        inventory.setItem(slot, null);
+                    }
+                }
             }
+
+            // Update the chest inventory
             if (inventory instanceof org.bukkit.inventory.DoubleChestInventory) {
                 org.bukkit.block.DoubleChest doubleChest = (org.bukkit.block.DoubleChest) inventory.getHolder();
                 Chest leftChest = (Chest) ((org.bukkit.inventory.DoubleChestInventory) inventory).getLeftSide().getHolder();
@@ -165,9 +182,12 @@ public class SellWandListener implements Listener {
                     chest.update(true, false);
                 });
             }
+
+            // Rest of the success handling (messages, effects, etc.)
             String formattedPrice = String.format("%.2f", totalPrice);
             String message = main.getPrefix() + plugin.getMessage("messages.sold-items", "{amount}", formattedPrice);
             player.sendMessage(message);
+            
             try {
                 player.playSound(player.getLocation(), 
                     org.bukkit.Sound.valueOf(plugin.getConfig().getString("selling.success-sound", "ENTITY_PLAYER_LEVELUP")), 

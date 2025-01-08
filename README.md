@@ -48,6 +48,12 @@ messages:
 wand:
   material: BLAZE_ROD
   name: "&6SellWand &8(&e{multiplier}x&8) &7[{uses} uses]"
+  custom_model_data:
+    "1.0": 1001  # Model data for 1x multiplier
+    "2.0": 1002  # Model data for 2x multiplier
+    "3.0": 1003  # Model data for 3x multiplier
+    "4.0": 1004  # Model data for 4x multiplier
+    "5.0": 1005  # Model data for 5x multiplier
   lore:
     - "&7Right-click on a chest to"
     - "&7sell its contents!"
@@ -73,6 +79,18 @@ selling:
 - Price limits for safety
 - Sound and particle effects
 - Double chest support
+- Custom model data support for different wand tiers
+- Automatic model data assignment based on multiplier
+
+## Custom Model Data
+The plugin supports different wand appearances based on the multiplier using Minecraft's custom model data system. The wand's appearance changes automatically when the multiplier reaches certain thresholds:
+- 1.0x multiplier → model data 1001
+- 2.0x multiplier → model data 1002
+- 3.0x multiplier → model data 1003
+- 4.0x multiplier → model data 1004
+- 5.0x multiplier → model data 1005
+
+**Note:** No example resource pack is provided yet. You'll need to create your own resource pack with the corresponding model data values to see different wand appearances.
 
 ## Placeholders
 - `{player}` - Player name
@@ -87,10 +105,11 @@ selling:
 - Double chests are required by default (configurable)
 - All messages and sounds are customizable
 - Color codes use `&` for formatting
+- Custom model data values can be configured in config.yml
+- Multipliers are rounded down to the nearest whole number for model data selection
 
 ## Support
 For support, please visit:
 - GitHub: https://github.com/f1shyondrugs/sellwand
 - Discord: f1shyondrugs312
 - mail: info@f1shy312.com
-

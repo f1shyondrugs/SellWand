@@ -9,6 +9,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.ChatColor;
 import java.util.List;
 import java.util.ArrayList;
+import org.bukkit.configuration.ConfigurationSection;
+import java.util.Collections;
 
 public class SellWand {
     private static NamespacedKey SELLWAND_KEY = null;
@@ -47,6 +49,11 @@ public class SellWand {
             }
             meta.setLore(lore);
             
+            int customModelData = getCustomModelData(multiplier);
+            if (customModelData > 0) {
+                meta.setCustomModelData(customModelData);
+            }
+            
             meta.getPersistentDataContainer().set(MULTIPLIER_KEY, PersistentDataType.DOUBLE, multiplier);
             meta.getPersistentDataContainer().set(USES_KEY, PersistentDataType.INTEGER, uses);
             meta.getPersistentDataContainer().set(SELLWAND_KEY, PersistentDataType.BYTE, (byte)1);
@@ -55,6 +62,24 @@ public class SellWand {
         }
         
         return wand;
+    }
+
+    private static int getCustomModelData(double multiplier) {
+        main plugin = main.getInstance();
+        ConfigurationSection modelDataSection = plugin.getConfig().getConfigurationSection("wand.custom_model_data");
+        
+        if (modelDataSection == null) {
+            return 1001; // Default fallback
+        }
+
+        // Round down to nearest whole number
+        int roundedMultiplier = (int) Math.floor(multiplier);
+        String key = roundedMultiplier + ".0";
+        
+        // Get the model data for the rounded multiplier, or use the highest defined value
+        return modelDataSection.getInt(key, 
+               modelDataSection.getInt("5.0", // Use highest defined multiplier if beyond range
+               1001)); // Default if nothing else matches
     }
 
     public static boolean useWand(ItemStack wand) {

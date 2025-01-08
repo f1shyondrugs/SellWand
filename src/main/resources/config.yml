@@ -21,16 +21,20 @@ messages:
   price-too-high: "&cThe total sale price is too high! Maximum is ${max}."
   single-chest-error: "&cSelling is only possible with double chests!"
   wand-given: "&aGave a SellWand to {player} with {multiplier}x multiplier and {uses} uses!"
+  console-usage: "&cConsole can only use: /sellwand give <player> [multiplier] [uses]"
 
 # SellWand Settings
 wand:
   material: BLAZE_ROD
   name: "&6SellWand &8(&e{multiplier}x&8) &7[{uses} uses]"
+  custom_model_data:
+    "1.0": 1001
+    "2.0": 1002
+    "3.0": 1003
+    "4.0": 1004
+    "5.0": 1005
   lore:
     - "&7Right-click on a chest to"
-    - "&7sell its contents!"
-    - "&8» &eSell Multiplier: &6{multiplier}x"
-    - "&8» &7Uses Remaining: &e{uses}"
   default-uses: 100
 
 # Selling Settings
